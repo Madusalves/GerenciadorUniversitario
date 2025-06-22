@@ -263,6 +263,9 @@ void menu(){
         cout << "4. Alterar Participante\n";
         cout << "5. Alterar Atividade\n";
         cout << "6. Alterar Inscrição\n";
+        cout << "7. Listar Participantes por Tipo de Atividade\n";
+        cout << "8. Listar Participantes que Participam de Atividades Esportivas\n";
+        cout << "9. Listar Atividades por Data\n";
         cout << "0. Sair\n";
         cout << "Escolha uma opção: ";
         cin >> opcao;
