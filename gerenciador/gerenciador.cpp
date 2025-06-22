@@ -77,3 +77,48 @@ void cadastrarParticipante() {
 }
 
 
+void cadastrarAtividade() {
+    Atividade a;
+    cout << "Nome da Atividade: ";
+    getline(cin, a.nomeAtividade);
+    
+    cout << "Tipo de Atividade: ";
+    getline(cin, a.tipoAtividade);
+    
+    cout << "Local: ";
+    getline(cin, a.local);
+    
+    cout << "Data (DD/MM/AAAA): ";
+    getline(cin, a.data);
+    
+    cout << "Hora (HHMM): ";
+    cin >> a.hora;
+    cin.ignore();
+    
+    cout << "Vagas Disponíveis: ";
+    cin >> a.vagasDisponiveis;
+    cin.ignore();
+    
+    atividades.push_back(a);
+    
+    cout << "Atividade cadastrada com sucesso!\n";
+}
+
+void inscreverParticipante() {
+    Incricao i;
+    cout << "Nome do Participante: ";
+    getline(cin, i.participanteNome);
+    
+    cout << "Atividade: ";
+    getline(cin, i.participanteAtividade);
+    
+    cout << "Data da Inscrição (DD/MM/AAAA): ";
+    getline(cin, i.dataInscricao);
+    
+    cout << "Presença Confirmada? (sim/não): ";
+    getline(cin, i.presencaConfirmada);
+    
+    inscricoes.push_back(i);
+    
+    cout << "Inscrição realizada com sucesso!\n";
+}
