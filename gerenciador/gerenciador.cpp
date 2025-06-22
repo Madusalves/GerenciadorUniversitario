@@ -211,6 +211,48 @@ void alterarInscricao() {
     }
 }
 
+void listarParticipantesTipo(){
+    string tipo;
+    cout << "Digite o tipo de Atividade: ";
+    getline(cin, tipo);
+    for (const auto &p : atividades) {
+        if (p.tipoAtividade == tipo) {
+            cout << "Nome: " << p.nomeAtividade << ", Local: " << p.local << endl;
+        }
+    }
+}
+
+void listarParticipantesEsportivos(){
+    bool encontrado = false;
+    for (const auto &p : participantes) {
+        if (p.participaDeAtividadesEsportivas) {
+            cout << "Nome: " << p.nome << ", Curso: " << p.curso << ", Idade: " << p.idade << endl;
+            encontrado = true;
+        }
+    }
+    if (!encontrado) {
+        cout << "Nenhum participante encontrado.\n";
+    }
+}
+
+void listarAtividadesPorData() {
+    string data;
+    cout << "Digite a data (DD/MM/AAAA): ";
+    getline(cin, data);
+    bool encontrado = false;
+    for (const auto &a : atividades) {
+        if (a.data == data) {
+            cout << "Atividade: " << a.nomeAtividade << ", Tipo: " << a.tipoAtividade 
+                 << ", Local: " << a.local << ", Hora: " << a.hora 
+                 << ", Vagas Disponíveis: " << a.vagasDisponiveis << endl;
+            encontrado = true;
+        }
+    }
+    if (!encontrado) {
+        cout << "Nenhuma atividade encontrada para essa data.\n";
+    }
+}
+
 void menu(){
     int opcao;
     do {
@@ -244,6 +286,15 @@ void menu(){
                 break;
             case 6:
                 alterarInscricao();
+                break;
+            case 7:
+                listarParticipantesTipo();
+                break;
+            case 8:
+                listarParticipantesEsportivos();
+                break;
+            case 9: 
+                listarAtividadesPorData();
                 break;
             case 0:
                 cout << "Saindo...\n";
