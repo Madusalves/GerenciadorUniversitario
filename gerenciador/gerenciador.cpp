@@ -107,21 +107,25 @@ void cadastrarAtividade() {
 
 void inscreverParticipante() {
     Incricao i;
+    Atividade a;
     cout << "Nome do Participante: ";
     getline(cin, i.participanteNome);
-    
-    cout << "Atividade: ";
-    getline(cin, i.participanteAtividade);
-    
-    cout << "Data da Inscrição (DD/MM/AAAA): ";
-    getline(cin, i.dataInscricao);
-    
-    cout << "Presença Confirmada? (sim/não): ";
-    getline(cin, i.presencaConfirmada);
-    
-    inscricoes.push_back(i); // Adiciona a inscrição ao vetor de inscrições
-    
-    cout << "Inscrição realizada com sucesso!\n";
+    if (a.vagasDisponiveis > 0) {
+        cout << "Atividade: ";
+        getline(cin, i.participanteAtividade);
+
+        cout << "Data da Inscrição (DD/MM/AAAA): ";
+        getline(cin, i.dataInscricao);
+
+        cout << "Presença Confirmada? (sim/não): ";
+        getline(cin, i.presencaConfirmada);
+
+        inscricoes.push_back(i); // Adiciona a inscrição ao vetor de inscrições
+
+        cout << "Inscrição realizada com sucesso!\n";
+    } else{
+        cout << "Essa atividade não possui vagas disponiveis!\n";
+    }
 }
 // alterarParticipante buscando por matrícula
 void alterarParticipante() {
