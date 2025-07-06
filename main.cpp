@@ -41,7 +41,13 @@ struct Inscricao {
     string dataInscricao;
 	int idParticipante;
 	int idAtividade;
+    static int nextIdParticipante; 
+    static int nextIdAtividade;   
 };
+
+
+int Inscricao::nextIdParticipante = 1;
+int Inscricao::nextIdAtividade = 1;
 
 vector<Inscricao> inscricoes;
 vector<int> participantesInscritos;
@@ -62,7 +68,7 @@ int main() {
                         <h1 id="menutitle">Menu</h1>
                         <button><a href="/cadastro">Cadastrar</a></button>
                         <button><a href="/alterar">Alterar</a></button>
-                        <button><a href="/inscricao">Inscrição</a></button>
+                        <button><a href="/listagem">Listas</a></button>
                     </div>
                 </section>
              </body>
@@ -83,7 +89,7 @@ int main() {
                             <h1 id="menutitle">Cadastrar</h1>
                             <button><a href="/cadastro/participante">Participante</a></button>
                             <button><a href="/cadastro/atividade">Atividade</a></button>
-                            <button><a href="/cadastro/incricao">Incrição</a></button>
+                            <button><a href="/cadastro/inscricao">Inscrição</a></button>
                             <hr>
                             <button id="voltar"><a href="/">< Voltar</a></button>
                         </div>
@@ -117,21 +123,41 @@ int main() {
         )";
         });
 
-	//menu de inscrição
-    CROW_ROUTE(app, "/inscricao")([]() {
+	//menu de LISTA
+    CROW_ROUTE(app, "/listagem")([]() {
         return R"(
             <html>
                 <head>
-                    <title>Inscrição</title>
+                    <title>Listagem</title>
                     <link rel="stylesheet" href="/static/style.css">
                 </head>
                 <body>
                     <section id="ms">
-                        <div id="menu">    
-                            <h1 id="menutitle">Inscrição</h1>
-                            <button><a href="/inscrever">Inscrever</a></button>
-                            <hr>
-                            <button id="voltar"><a href="/">< Voltar</a></button>
+                        <div id="containerform" style="min-width: 40vw;">
+                            <h1 id="menutitle" style="margin-bottom:2vh;">Listagens</h1>
+                            <form action="/listagem/atividades" method="GET" style="margin-bottom:2vh;">
+                                <label>
+                                    <b>Listagem das atividades por tipo</b> (ler o tipo via teclado).
+                                    <input type="text" name="tipo" placeholder="Digite o tipo da atividade" required style="margin-left:1vw;">
+                                    <button type="submit" style="margin-left:1vw;">Listar</button>
+                                </label>
+                            </form>
+                            <form action="/listagem/esportivos" method="GET" style="margin-bottom:2vh;">
+                                <label>
+                                    <b>Listagem dos participantes que se inscreveram em atividades esportivas.</b>
+                                    <button type="submit" style="margin-left:1vw;">Listar</button>
+                                </label>
+                            </form>
+                            <form action="/listagem/inscricoes" method="GET">
+                                <label>
+                                    <b>Listagem das inscrições feitas em uma data específica</b> (ler a data via teclado).
+                                    <input type="date" name="data" required style="margin-left:1vw;">
+                                    <button type="submit" style="margin-left:1vw;">Listar</button>
+                                </label>
+                            </form>
+                            <div id="menu" style="margin-top:3vh;">
+                                <button id="voltar"><a href="/">< Voltar</a></button>
+                            </div>
                         </div>
                     </section>
                 </body>
@@ -139,46 +165,238 @@ int main() {
         )";
 		});
 
-	//CADASTRO INCRIÇÃO
-    CROW_ROUTE(app, "/cadastro/incricao")([]() {
-        return R"(
-            <html>
-            <head><link rel="stylesheet" href="/static/style.css">
+	// listagem de atividades por tipo
+    CROW_ROUTE(app, "/listagem/atividades").methods("GET"_method)
+        ([](const crow::request& req) {
+        std::ostringstream os;
+        std::string tipo = req.url_params.get("tipo") ? req.url_params.get("tipo") : "";
+
+        os << "<html><head><title>Atividades por Tipo</title>"
+            << "<link rel='stylesheet' href='/static/style.css'></head><body>";
+        os << "<section id='ms'><div id='containerform'>";
+        os << "<h1 id='menutitle'>Atividades do tipo: " << tipo << "</h1>";
+
+        if (tipo.empty()) {
+            os << "<p style='color:red;'>Tipo não informado.</p>";
+        }
+        else {
+            bool encontrou = false;
+            os << "<div id='listagem'>";
+            for (const auto& a : atividades) {
+                if (a.tipoAtividade == tipo) {
+                    encontrou = true;
+                    os << "<div class='cardparticipante'>";
+                    os << "<h1>" << a.nomeAtividade << "</h1>";
+                    os << "<h5>Vagas: " << a.vagasDisponiveis << " | " << a.data << " - " << a.hora << "</h5>";
+                    os << "<hr>";
+                    os << "<div class='infosparticipante'><div><p>" << a.tipoAtividade << "</p><p>" << a.local << "</p></div></div>";
+                    os << "</div>";
+                }
+            }
+            os << "</div>";
+            if (!encontrou) {
+                os << "<p style='color:white;font-size:1.2vw;'>Nenhuma atividade encontrada para o tipo informado.</p>";
+            }
+        }
+        os << "<div id='menu' style='margin-top:3vh;'><button id='voltar'><a href='/listagem'>< Voltar</a></button></div>";
+        os << "</div></section></body></html>";
+        return crow::response(os.str());
+            });
+
+	// listagem de participantes inscritos em atividades esportivas
+    CROW_ROUTE(app, "/listagem/esportivos").methods("GET"_method)
+        ([](const crow::request& req) {
+        std::ostringstream os;
+        os << "<html><head><title>Participantes em Atividades Esportivas</title>"
+            << "<link rel='stylesheet' href='/static/style.css'></head><body>";
+        os << "<section id='ms'><div id='containerform'>";
+        os << "<h1 id='menutitle'>Participantes inscritos em atividades esportivas</h1>";
+
+        // Encontrar nomes das atividades esportivas
+        std::vector<std::string> nomesAtividadesEsportivas;
+        for (const auto& a : atividades) {
+            if (a.esportiva) {
+                nomesAtividadesEsportivas.push_back(a.nomeAtividade);
+            }
+        }
+
+        bool encontrou = false;
+        os << "<div id='listagem'>";
+        for (const auto& inscricao : inscricoes) {
+            // Se a inscrição for para uma atividade esportiva
+            if (std::find(nomesAtividadesEsportivas.begin(), nomesAtividadesEsportivas.end(), inscricao.participanteAtividade) != nomesAtividadesEsportivas.end()) {
+                encontrou = true;
+                os << "<div class='cardparticipante'>";
+                os << "<h1>" << inscricao.participanteNome << "</h1>";
+                os << "<h5>Atividade: " << inscricao.participanteAtividade << "</h5>";
+                os << "<p>Data da inscrição: " << inscricao.dataInscricao << "</p>";
+                os << "</div>";
+            }
+        }
+        os << "</div>";
+
+        if (!encontrou) {
+            os << "<p style='color:white;font-size:1.2vw;'>Nenhum participante inscrito em atividade esportiva.</p>";
+        }
+
+        os << "<div id='menu' style='margin-top:3vh;'><button id='voltar'><a href='/listagem'>< Voltar</a></button></div>";
+        os << "</div></section></body></html>";
+        return crow::response(os.str());
+        });
+
+    CROW_ROUTE(app, "/listagem/inscricoes").methods("GET"_method)
+([](const crow::request& req) {
+    std::ostringstream os;
+    std::string data = req.url_params.get("data") ? req.url_params.get("data") : "";
+
+    os << "<html><head><title>Inscrições por Data</title>"
+       << "<link rel='stylesheet' href='/static/style.css'></head><body>";
+    os << "<section id='ms'><div id='containerform'>";
+    os << "<h1 id='menutitle'>Inscrições na data: " << data << "</h1>";
+
+    if (data.empty()) {
+        os << "<p style='color:red;'>Data não informada.</p>";
+    } else {
+        bool encontrou = false;
+        os << "<div id='listagem'>";
+        for (const auto& inscricao : inscricoes) {
+            if (inscricao.dataInscricao == data) {
+                encontrou = true;
+                os << "<div class='cardparticipante'>";
+                os << "<h1>" << inscricao.participanteNome << "</h1>";
+                os << "<h5>Atividade: " << inscricao.participanteAtividade << "</h5>";
+                os << "<p>Data da inscrição: " << inscricao.dataInscricao << "</p>";
+                os << "</div>";
+            }
+        }
+        os << "</div>";
+        if (!encontrou) {
+            os << "<p style='color:white;font-size:1.2vw;'>Nenhuma inscrição encontrada para a data informada.</p>";
+        }
+    }
+
+    os << "<div id='menu' style='margin-top:3vh;'><button id='voltar'><a href='/listagem'>< Voltar</a></button></div>";
+    os << "</div></section></body></html>";
+    return crow::response(os.str());
+});
+
+
+
+
+	//CADASTRO INSCRIÇÃO
+    CROW_ROUTE(app, "/cadastro/inscricao").methods(crow::HTTPMethod::GET)([]() {
+        std::ostringstream os;
+
+        os << R"(
+        <html>
+        <head>
+            <link rel="stylesheet" href="/static/style.css">
             <title>Cadastro de Inscrição</title>
-            </head>
-            <body>
-                <section id="ms">
-                    <div id="containerform">
-                        <h1 id="menutitle">Cadastro de Inscrição</h1>
-                        <form action="/cadastro/incricao" method="POST">
-                            <label>Nome do Participante: <input type="text" name="participanteNome" required></label>
-                           <label>Atividade:
-                                <select name="participanteAtividade" required>
-                                    <option value="" disabled selected>Selecione uma atividade</option>
-                                    <option value="palestra">Palestra</option>
-                                    <option value="oficina">Oficina</option>
-                                    <option value="competição">Competição</option>
-                                    <option value="festa">Festa</option>
-                                </select>
-                           </label>
-                            <label>Data da Inscrição (DD/MM/AAAA): <input type="date" name="dataInscricao" pattern="\d{2}/\d{2}/\d{4}" required></label>
-                            <label>Presença Confirmada: 
-                                <select name="presencaConfirmada" required>
-                                    <option value="sim">Sim</option>
-                                    <option value="não">Não</option>
-                                </select>
-                            </label>
-                            <div id="botoes">
-                                <button id="voltar"><a href="/cadastro">< Voltar</a></button>
-                                <button type="submit" value="Inscrever" style="cursor: pointer;"><a>Inscrever</a></button>
-                            </div>
-                        </form>
-                    </div>
-                </section>
-            </body>
-            </html>
-        )";
-		});
+        </head>
+        <body>
+            <section id="ms">
+                <div id="containerform">
+                    <h1 id="menutitle">Cadastro de Inscrição</h1>
+                    <form action="/cadastro/inscricao/submit" method="POST">
+                        <label>Nome do Participante: <input type="text" name="participanteNome" required></label><br><br>
+                        <label>Atividade:
+                            <select name="participanteAtividade" required>
+                                <option value="" disabled selected>Selecione uma atividade</option>
+                                <option value="palestra">Palestra</option>
+                                <option value="oficina">Oficina</option>
+                                <option value="competição">Competição</option>
+                                <option value="festa">Festa</option>
+                            </select>
+                        </label><br><br>
+                        <label>Data da Inscrição: <input type="date" name="dataInscricao" required></label><br><br>
+                        <div id="botoes">
+                            <button type="button" onclick="window.location.href='/cadastro'">&lt; Voltar</button>
+                            <button type="submit" style="cursor: pointer;">Inscrever</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+            <hr>
+            <section id="listaInscricoes">
+                <h2>Inscrições Realizadas</h2>
+    )";
+
+        if (inscricoes.empty()) {
+            os << "<p>Nenhuma inscrição realizada ainda.</p>";
+        }
+        else {
+            os << R"(<table border="1" cellpadding="5" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>ID Participante</th>
+                            <th>Nome</th>
+                            <th>ID Atividade</th>
+                            <th>Atividade</th>
+                            <th>Data da Inscrição</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                )";
+
+            for (const auto& inscricao : inscricoes) {
+                os << "<tr>";
+                os << "<td>" << inscricao.idParticipante << "</td>";
+                os << "<td>" << inscricao.participanteNome << "</td>";
+                os << "<td>" << inscricao.idAtividade << "</td>";
+                os << "<td>" << inscricao.participanteAtividade << "</td>";
+                os << "<td>" << inscricao.dataInscricao << "</td>";
+                os << "</tr>";
+            }
+
+            os << "</tbody></table>";
+        }
+
+        os << R"(
+            </section>
+        </body>
+        </html>
+    )";
+
+        return crow::response{ os.str() };
+        });
+
+
+
+    // Rota POST: Processa os dados do formulário
+ 
+
+    CROW_ROUTE(app, "/cadastro/inscricao/submit").methods(crow::HTTPMethod::POST)
+        ([](const crow::request& req) {
+        auto body = req.get_body_params();
+
+        std::string nome = body.get("participanteNome") ? body.get("participanteNome") : "";
+        std::string atividade = body.get("participanteAtividade") ? body.get("participanteAtividade") : "";
+        std::string data = body.get("dataInscricao") ? body.get("dataInscricao") : "";
+
+        if (nome.empty() || atividade.empty() || data.empty()) {
+            return crow::response(400, "Dados incompletos. Por favor, preencha todos os campos.");
+        }
+
+        int idParticipante = Inscricao::nextIdParticipante++;
+        int idAtividade = Inscricao::nextIdAtividade++;
+
+        Inscricao novaInscricao = { nome, atividade, data, idParticipante, idAtividade };
+        inscricoes.push_back(novaInscricao);
+
+        std::ostringstream os;
+        os << "<html><body>";
+        os << "<h2>Inscrição realizada com sucesso!</h2>";
+        os << "<p><b>Nome:</b> " << nome << "</p>";
+        os << "<p><b>Atividade:</b> " << atividade << "</p>";
+        os << "<p><b>Data da Inscrição:</b> " << data << "</p>";
+        os << "<p><b>ID Participante:</b> " << idParticipante << "</p>";
+        os << "<p><b>ID Atividade:</b> " << idAtividade << "</p>";
+        os << "<a href=\"/cadastro/inscricao\">Cadastrar nova inscrição</a>";
+        os << "</body></html>";
+
+        return crow::response{ os.str() };
+            });
+
 
 
 
@@ -338,29 +556,7 @@ int main() {
         return crow::response(os.str());
     });
 
-    CROW_ROUTE(app, "/inscrever")([]() {
-        return R"(
-        <html>
-        <head><title>Cadastro de Inscrição</title></head>
-        <body>
-            <h1>Cadastro de Inscrição</h1>
-            <form action="/inscrever" method="POST">
-                Nome do Participante: <input type="text" name="participanteNome" required><br><br>
-                Atividade: <input type="text" name="participanteAtividade" required><br><br>
-                Data da Inscrição (DD/MM/AAAA): <input type="date" name="dataInscricao" pattern="\d{2}/\d{2}/\d{4}" required><br><br>
-                Presença Confirmada? 
-                <select name="presencaConfirmada" required>
-                    <option value="sim">Sim</option>
-                    <option value="não">Não</option>
-                </select><br><br>
-                <input type="submit" value="Inscrever">
-            </form>
-            <br>
-            <a href='/'>Voltar</a>
-        </body>
-        </html>
-        )";
-        });
+    
 
 
     CROW_ROUTE(app, "/alterar/participante")([](const crow::request& req) {
@@ -508,6 +704,64 @@ int main() {
         os << "</html>";
         return crow::response(os.str());
     });
+
+    CROW_ROUTE(app, "/alterar/inscricao")([](const crow::request& req) {
+        std::ostringstream os;
+        os << "<html><head><title>Alterar Inscrição</title>";
+        os << "<link rel='stylesheet' href='/static/style.css'></head><body>";
+
+        const char* participante_param = req.url_params.get("participante");
+        const char* atividade_param = req.url_params.get("atividade");
+
+        os << "<section id='ms'>";
+        os << "<div id='containerform'>";
+        os << "<h1 id='menutitle'>Alterar Inscrição</h1>";
+        os << "<form action='/alterar/inscricao' method='GET' style='margin-bottom:2vh;'>";
+        os << "<input type='search' name='participante' placeholder='Pesquisar por participante...' value='"
+            << (participante_param ? participante_param : "") << "'>";
+        os << "<input type='search' name='atividade' placeholder='Pesquisar por atividade...' value='"
+            << (atividade_param ? atividade_param : "") << "'>";
+        os << "<button type='submit'>Buscar</button>";
+        os << "</form>";
+
+        os << "<div id='listagem'>";
+
+        bool found = false;
+        int indice = 0;
+        for (const auto& i : inscricoes) {
+            bool match = true;
+            if (participante_param && *participante_param)
+                match &= (i.participanteNome == participante_param);
+            if (atividade_param && *atividade_param)
+                match &= (i.participanteAtividade == atividade_param);
+
+            if (match) {
+                os << "<div class='cardparticipante'>";
+                os << "<h2>" << i.participanteNome << "</h2>";
+                os << "<h3>Atividade: " << i.participanteAtividade << "</h3>";
+                os << "<p>Data da inscrição: " << i.dataInscricao << "</p>";
+                os << "<div class='cardactions'>";
+                os << "<button><a href='/inscricao/alterar/" << indice << "' style='color: yellow;'>Alterar</a></button>";
+                os << "</div></div>";
+                found = true;
+            }
+            indice++;
+        }
+
+        if (!found) {
+            os << "<p>Nenhuma inscrição encontrada com os critérios informados.</p>";
+        }
+
+        os << "</div>";
+        os << "<div id='menu' style='margin-top:3vh;'>";
+        os << "<button id='voltar'><a href='/alterar'>< Voltar</a></button>";
+        os << "</div>";
+        os << "</div>"; // fecha containerform
+        os << "</section></body></html>";
+
+        return crow::response(os.str());
+        });
+
 
     CROW_ROUTE(app, "/participante/<int>").methods("GET"_method, "POST"_method)
         ([](const crow::request& req, int indiceVetor) {
@@ -772,9 +1026,24 @@ int main() {
                 CROW_ROUTE(app, "/atividade/deletar/<int>").methods("GET"_method, "POST"_method)
                     ([](const crow::request& req, int indiceVetor) {
                     std::ostringstream os;
-
-        
-            });
+                    int tamanho = atividades.size();
+                    if (indiceVetor < 0 || indiceVetor >= tamanho) {
+                        os << "<html><body>Atividade não encontrada.<br><a href='/alterar/atividade'>Voltar</a></body></html>";
+                        return crow::response(os.str());
+                    }
+                    else {
+                        if (req.method == crow::HTTPMethod::GET) {
+                            const Atividade& a = atividades[indiceVetor];
+                            os << "<html><body>Tem certeza que deseja deletar a atividade <b>" << a.nomeAtividade << "</b>?<form method='POST'><button type='submit'>Deletar</button></form></body></html>";
+                            return crow::response(os.str());
+                        }
+                        else {
+                            atividades.erase(atividades.begin() + indiceVetor);
+                            os << "<html><body>Atividade deletada com sucesso!<br><a href='/alterar/atividade'>Voltar</a></body></html>";
+                            return crow::response(os.str());
+                        }
+                    }
+                        });
     //css páginas
     CROW_ROUTE(app, "/static/style.css")([]() {
         crow::response res(R"(
