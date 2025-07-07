@@ -1,0 +1,10 @@
+{
+  "name": "meu-crow-app",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "crow",
+    "boost-system",
+    "boost-filesystem",
+    "boost-asio"
+  ]
+}
