@@ -26,7 +26,7 @@ cd GerenciadorUniversitario
 .\call buildarProjeto.bat
 ```
 
-> O script pode instalar dependências ou configurar variáveis de ambiente, dependendo da sua implementação.
+> O script pode instalar dependências
 
 ---
 
@@ -60,7 +60,7 @@ Após a compilação, o executável estará disponível na pasta `build`. Basta 
 ./meu_crow_app.exe
 ```
 
-> Substitua `NomeDoExecutavel.exe` pelo nome real gerado pela compilação.
+
 
 ---
 
