@@ -66,7 +66,7 @@ Após a compilação, o executável estará disponível na pasta `build`. Basta 
 
 ## ❓ Suporte
 
-Se você encontrar qualquer problema durante a configuração ou execução do projeto, abra uma [issue](https://github.com/seu-usuario/seu-repositorio/issues) ou entre em contato diretamente.
+Se você encontrar qualquer problema durante a configuração ou execução do projeto, abra uma [issue](https://github.com/Madusalves/GerenciadorUniversitario/issues) ou entre em contato diretamente.
 
 ---
 
