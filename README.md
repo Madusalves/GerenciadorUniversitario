@@ -23,7 +23,7 @@ Navegue até a pasta do projeto e execute o script `.bat`:
 
 ```bash
 cd GerenciadorUniversitario
-.\setup.bat
+.\buildarProjeto.bat
 ```
 
 > O script pode instalar dependências ou configurar variáveis de ambiente, dependendo da sua implementação.
@@ -57,7 +57,7 @@ Esse comando utilizará os arquivos de configuração CMake para compilar o proj
 Após a compilação, o executável estará disponível na pasta `build`. Basta rodá-lo diretamente:
 
 ```bash
-./NomeDoExecutavel.exe
+./meu_crow_app.exe
 ```
 
 > Substitua `NomeDoExecutavel.exe` pelo nome real gerado pela compilação.
