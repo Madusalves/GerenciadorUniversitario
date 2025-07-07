@@ -23,7 +23,7 @@ Navegue até a pasta do projeto e execute o script `.bat`:
 
 ```bash
 cd GerenciadorUniversitario
-.\buildarProjeto.bat
+.\call buildarProjeto.bat
 ```
 
 > O script pode instalar dependências ou configurar variáveis de ambiente, dependendo da sua implementação.
